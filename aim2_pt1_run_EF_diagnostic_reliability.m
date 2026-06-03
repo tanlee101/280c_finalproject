@@ -23,7 +23,7 @@ for p = 1:length(patientIDs)
     ES_area = patientData.lv_area_ES_mm2;
 
 
-    valid_idx = ~isnan(ED_area) & ~isnan(ES_area);  % remove slices missing either ED or ES area
+    valid_idx = ~isnan(ED_area) & ~isnan(ES_area) & (ED_area > 0) & (ES_area > 0);  % remove slices missing either ED or ES area
     patientData = patientData(valid_idx, :);
     ED_area = ED_area(valid_idx);
     ES_area = ES_area(valid_idx);
@@ -49,8 +49,81 @@ for p = 1:length(patientIDs)
         EF_all(p,k) = (EDV - ESV) / EDV * 100;
     end
 
-    fprintf('Finished patient %03d\n', patientID);
+   fprintf('Finished patient %03d\n', patientID);
 end
+
+%% Clinical EF category reclassification
+% Categories: >70 (hyperdynamic), 50-70 (normal), 41-49 (mildly reduced), <=40 (reduced)
+category_labels = {'Hyperdynamic (>70)','Normal (50-70)','Mildly Reduced (41-49)','Reduced (<=40)'};
+
+EF_full = EF_all(:,1);
+classify = @(EF) (EF > 70)*1 + (EF >= 50 & EF <= 70)*2 + (EF > 40 & EF < 50)*3 + (EF <= 40)*4;
+n_patients = length(patientIDs);
+reclass_rate = nan(1, length(retention_percent));
+
+class_full = classify(EF_full);
+
+for k = 1:length(retention_percent)
+    class_k = classify(EF_all(:,k));
+    reclass_rate(k) = mean(class_full ~= class_k, 'omitnan') * 100;
+end
+
+% Stacked bar: for each retention level, count patients per category
+figure;
+category_counts = nan(length(retention_percent), 4);
+for k = 1:length(retention_percent)
+    class_k = classify(EF_all(:,k));
+    for cat = 1:4
+        category_counts(k,cat) = sum(class_k == cat, 'omitnan');
+    end
+end
+
+b = bar(category_counts, 'stacked');
+for k = 2:length(retention_percent)
+    text(k, n_patients + 4, sprintf('%.1f%% reclass.', reclass_rate(k)), ...
+        'HorizontalAlignment', 'center', 'FontSize', 10, 'FontWeight', 'bold');
+end
+set(gca, 'XTickLabel', arrayfun(@(x) sprintf('%d%%',x), retention_percent, 'UniformOutput', false));
+xlabel('Percent of SAX Slices Retained (%)', 'FontSize', 15);
+ylabel('Number of Patients', 'FontSize', 15);
+title('EF Category Distribution vs SAX Undersampling', 'FontSize', 15);
+legend(category_labels, 'Location', 'eastoutside', 'FontSize', 15);
+grid on;
+
+% Print reclassification rate
+fprintf('\nCategory Reclassification Rate:\n');
+for k = 1:length(retention_percent)
+    fprintf('Retain %d%%: %.1f%% patients reclassified\n', retention_percent(k), reclass_rate(k));
+end
+
+%% Reclassification direction bar chart
+n_upgraded = nan(1, length(retention_percent)-1);
+n_downgraded = nan(1, length(retention_percent)-1);
+n_to_normal = nan(1, length(retention_percent)-1);
+
+for k = 2:length(retention_percent)
+    class_k = classify(EF_all(:,k));
+    changed = class_full ~= class_k & class_full > 0 & class_k > 0;
+    n_upgraded(k-1) = sum(class_k(changed) < class_full(changed));
+    n_downgraded(k-1) = sum(class_k(changed) > class_full(changed));
+    n_to_normal(k-1) = sum(class_k(changed) == 2 & class_full(changed) ~= 2);
+end
+
+figure;
+b = bar([n_upgraded; n_downgraded]', 'grouped');
+b(1).DisplayName = 'Upgraded';
+b(2).DisplayName = 'Downgraded';
+hold on;
+
+x = 1:length(retention_percent)-1;
+scatter(x - 0.15, n_to_normal, 80, 'k^', 'filled', 'DisplayName', 'Reclassified to Normal');
+xticklabels(arrayfun(@(x) sprintf('%d%%', x), retention_percent(2:end), 'UniformOutput', false));
+xlabel('Percent of SAX Slices Retained (%)', 'FontSize', 15);
+ylabel('Number of Patients', 'FontSize', 15);
+title('EF Category Reclassification Direction', 'FontSize', 15);
+legend({'Upgraded','Downgraded','Reclassified to Normal'}, 'Location', 'best', 'FontSize', 15);
+grid on;
+
 
 %%Define healthy vs diseased groups
 healthy_idx = disease_all == "NOR";
