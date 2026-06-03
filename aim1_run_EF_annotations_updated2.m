@@ -43,7 +43,7 @@ for p = 1:length(patientIDs) %process one patient at a time
     nSlices = length(ED_area);
     n_valid_slices_all(p) = nSlices;
 
-    %% Percent-based reduced-slice EF: uniform baseline
+    %%Percent-based reduced-slice EF: uniform baseline
     for k = 1:length(retention_percent) %loop through different slice retentions
 
         percent = retention_percent(k);
@@ -134,7 +134,7 @@ for p = 1:length(patientIDs) %process one patient at a time
     fprintf('Finished patient %03d\n', patientID);
 end
 
-%% Errors relative to full SAX
+%%Errors relative to full SAX
 EF_full = EF_all(:,1);
 EF_error = EF_all - EF_full;
 abs_EF_error = abs(EF_error);
@@ -173,7 +173,7 @@ resultsTable = movevars(resultsTable, {'PatientID','Disease','ValidSlices'}, 'Be
 
 disp(resultsTable);
 
-%% Plot 1: Mean absolute EF error
+%%Plot 1: Mean absolute EF error
 mean_abs_error = mean(abs_EF_error, 1, 'omitnan');
 std_abs_error = std(abs_EF_error, 0, 1, 'omitnan');
 
