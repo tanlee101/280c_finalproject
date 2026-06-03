@@ -6,7 +6,7 @@ T = readtable('annotations.csv'); %load csv
 
 T = T(strcmp(T.view, 'SAX'), :); % Keep only SAX rows
 
-%% Setup variables
+%%Setup Variables
 retention_percent = [100 75 50 25]; % define slice retention levels
 patientIDs = unique(T.patient_id);
 
@@ -22,7 +22,7 @@ ESV_full_all = nan(length(patientIDs), 1);
 disease_all = strings(length(patientIDs), 1);
 n_valid_slices_all = nan(length(patientIDs), 1);
 
-%% Loop through patients
+%%Loop through patients
 for p = 1:length(patientIDs) %process one patient at a time
 
     patientID = patientIDs(p);
