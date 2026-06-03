@@ -5,14 +5,14 @@ T = readtable('annotations.csv'); % Load CSV
 
 T = T(strcmp(T.view, 'SAX'), :); %keep only SAX rows
 
-%% Setup
+%%Setup
 retention_percent = [100 75 50 25];
 patientIDs = unique(T.patient_id);
 
 EF_all = nan(length(patientIDs), length(retention_percent));
 disease_all = strings(length(patientIDs), 1);
 
-%% Loop through patients
+%%Loop through patients
 for p = 1:length(patientIDs)
 
     patientID = patientIDs(p);
@@ -33,7 +33,7 @@ for p = 1:length(patientIDs)
 
     nSlices = length(ED_area);
 
-    %% Calculate EF at each retention level
+    %%Calculate EF at each retention level
     for k = 1:length(retention_percent)
 
         percent = retention_percent(k);
@@ -52,11 +52,11 @@ for p = 1:length(patientIDs)
     fprintf('Finished patient %03d\n', patientID);
 end
 
-%% Define healthy vs diseased groups
+%%Define healthy vs diseased groups
 healthy_idx = disease_all == "NOR";
 diseased_idx = ~healthy_idx;
 
-%% Boxplot: EF distributions by retention level and diagnosis group
+%%Boxplot: EF distributions by retention level and diagnosis group
 %convert EF results so MATLAB can group by retention level and diagnosis
 %category
 figure;
@@ -92,7 +92,7 @@ title('Healthy vs Diseased EF Distributions Across SAX Retention Levels');
 legend;
 grid on;
 
-%% Statistical comparison: healthy vs diseased at each retention level
+%%Statistical comparison: healthy vs diseased at each retention level
 %test significance difference in EF between healthy and diseased patients
 %at each retention level 
 p_values = nan(length(retention_percent), 1);
@@ -117,7 +117,7 @@ for k = 1:length(retention_percent)
     fprintf('%d%% retained: mean difference = %.2f EF points, p = %.4f\n', ...
         retention_percent(k), mean_difference(k), p_val);
 end
-%% Mean EF by group at each retention level
+%%Mean EF by group at each retention level
 %solve for mean EF and variability for healthy and diseased patients
 healthy_mean = mean(EF_all(healthy_idx,:), 1, 'omitnan');
 healthy_std = std(EF_all(healthy_idx,:), 0, 1, 'omitnan');
@@ -168,7 +168,7 @@ annotation('textbox',[0.15 0.15 0.15 0.10], ...
     'FitBoxToText','on', ...
     'EdgeColor','none');
 
-%% Save results table
+%%Save results table
 resultsTable = array2table(EF_all, ...
     'VariableNames', {'Full_SAX','Retain_75pct','Retain_50pct','Retain_25pct'});
 
