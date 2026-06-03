@@ -63,7 +63,7 @@ for p = 1:length(patientIDs) %process one patient at a time
         end
     end
 
-    %% Optimization experiment: clinically feasible sampling protocols
+    %%Optimization experiment: clinically feasible sampling protocols
     for k = 1:length(retention_percent)
 
         percent = retention_percent(k);
@@ -106,7 +106,7 @@ for p = 1:length(patientIDs) %process one patient at a time
         end
     end
 
-    %% Fair regional comparison at 75% slice retention
+    %%Fair regional comparison at 75% slice retention
     nKeep_region = max(round(nSlices * 0.75), 1); %estimate EF at 75% slice retention at different locations
 
     idx_uniform_region = unique(round(linspace(1, nSlices, nKeep_region)));
@@ -139,7 +139,7 @@ EF_full = EF_all(:,1);
 EF_error = EF_all - EF_full;
 abs_EF_error = abs(EF_error);
 
-%% Disease-group analysis
+%%Disease group analysis
 diseaseGroups = unique(disease_all);
 
 figure; hold on;
@@ -159,7 +159,7 @@ title('Disease Group Comparison: EF Error vs SAX Undersampling');
 legend('Location','northwest');
 grid on;
 
-%% Results table
+%%Results table
 resultsTable = array2table(EF_all, ...
     'VariableNames', {'Full_SAX','Retain_75pct','Retain_50pct','Retain_25pct'});
 
@@ -185,7 +185,7 @@ ylabel('Mean Absolute EF Error (percentage points)');
 title('EF Error vs Percent SAX Slices Retained');
 grid on;
 
-%% Plot 2: Mean EF estimate
+%%Plot 2: Mean EF estimate
 mean_EF = mean(EF_all, 1, 'omitnan');
 std_EF = std(EF_all, 0, 1, 'omitnan');
 
@@ -197,7 +197,7 @@ ylabel('Estimated EF (%)');
 title('Mean EF vs Percent SAX Slices Retained');
 grid on;
 
-%% Fair regional comparison plot
+%%Fair regional comparison plot
 EF_regional_error = abs(EF_regional - EF_all(:,1));
 
 mean_regional_error = mean(EF_regional_error, 1, 'omitnan');
@@ -218,7 +218,7 @@ title('Fair Regional Comparison at 75% SAX Slice Retention');
 grid on;
 
 
-%% Optimization experiment plot
+%%Optimization experiment plot
 EF_opt_error = abs(EF_opt - EF_all(:,1));
 
 figure; hold on;
@@ -243,7 +243,7 @@ title('Optimization of Reduced SAX Sampling');
 legend('Location','northwest');
 grid on;
 
-%% Save results
+%%Save results
 resultsDir = 'results';
 if ~exist(resultsDir, 'dir')
     mkdir(resultsDir);
